@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Crawhaba 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f0604;
+    background-image: radial-gradient(ellipse at 20% 20%, #2a0c04 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 80%, #1a0804 0%, transparent 60%);
+    font-family: Georgia, serif;
+    color: #f5e6d3;
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+  header {
+    text-align: center;
+    padding: 40px 24px 24px;
+    border-bottom: 1px solid rgba(232,65,42,0.2);
+  }
+  header .crab { font-size: 46px; margin-bottom: 6px; }
+  header h1 {
+    font-family: 'Bitter', serif;
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 900;
+    color: #e8412a;
+    letter-spacing: -1px;
+    text-shadow: 0 2px 20px rgba(232,65,42,0.4);
+  }
+  header p {
+    color: #9a7060;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .wrap { max-width: 700px; margin: 0 auto; padding: 0 20px; }
+
+  /* Stat cards */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 18px 12px;
+    text-align: center;
+  }
+  .card .val {
+    font-family: 'Bitter', serif;
+    font-size: clamp(18px, 4vw, 26px);
+    font-weight: 800;
+  }
+  .card .lbl {
+    font-size: 10px;
+    color: #9a7060;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 28px;
+  }
+  .tab {
+    background: rgba(255,255,255,0.05);
+    color: #9a7060;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    cursor: pointer;
+    font-family: 'Bitter', serif;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.15s;
+  }
+  .tab.active {
+    background: #e8412a;
+    color: #fff;
+  }
+
+  /* Panels */
+  .panel { display: none; margin-top: 24px; }
+  .panel.active { display: block; }
+
+  /* Split panel */
+  .split-hero {
+    background: rgba(232,65,42,0.08);
+    border: 1px solid rgba(232,65,42,0.3);
+    border-radius: 14px;
+    padding: 28px 24px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .split-hero .sub { color: #9a7060; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+  .split-hero .big {
+    font-family: 'Bitter', serif;
+    font-size: clamp(48px, 12vw, 72px);
+    font-weight: 900;
+    color: #e8412a;
+    line-height: 1;
+  }
+  .split-hero .note { color: #9a7060; font-size: 12px; margin-top: 8px; }
+  .split-breakdown {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 13px;
+    color: #9a7060;
+    text-align: center;
+    line-height: 1.9;
+  }
+  .split-breakdown .row { margin-bottom: 2px; }
+  .split-breakdown .divider { border-top: 1px solid rgba(255,255,255,0.06); margin-top: 10px; padding-top: 10px; }
+  .hl  { color: #f5e6d3; }
+  .hlg { color: #22c55e; }
+  .hly { color: #eab308; font-weight: 700; }
+
+  /* Chart panels */
+  .chart-box {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 20px 16px 16px;
+    margin-bottom: 16px;
+  }
+  .chart-box .chart-title {
+    color: #9a7060;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  canvas { display: block; width: 100% !important; }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 14px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #9a7060; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* Roster */
+  .roster { display: flex; flex-direction: column; gap: 8px; }
+  .roster-row {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .roster-row.cash {
+    background: rgba(148,163,184,0.06);
+    border: 1px dashed rgba(148,163,184,0.2);
+  }
+  .roster-num { color: #4a3028; font-weight: 700; font-size: 12px; width: 22px; text-align: right; flex-shrink: 0; }
+  .roster-info { flex: 1; min-width: 0; }
+  .roster-name { font-weight: 700; font-size: 14px; color: #f5e6d3; }
+  .roster-time { color: #6b5045; font-size: 11px; margin-top: 1px; }
+  .roster-bar-bg { margin-top: 5px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; }
+  .roster-bar    { height: 4px; border-radius: 2px; }
+  .roster-amt {
+    font-family: 'Bitter', serif;
+    font-weight: 800;
+    font-size: 16px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="crab">🦞</div>
+  <h1>CRAWHABA 2026</h1>
+  <p>April 11 · Payment Summary · CDT</p>
+</header>
+
+<div class="wrap">
+
+  <!-- Stat Cards -->
+  <div class="cards">
+    <div class="card"><div class="val" style="color:#e8412a" id="c-venmo"></div><div class="lbl">Venmo</div></div>
+    <div class="card"><div class="val" style="color:#94a3b8" id="c-cash"></div><div class="lbl">Cash</div></div>
+    <div class="card"><div class="val" style="color:#22c55e" id="c-surplus"></div><div class="lbl">Budget Surplus</div></div>
+    <div class="card"><div class="val" style="color:#f97316" id="c-total"></div><div class="lbl">Grand Total</div></div>
+    <div class="card"><div class="val" style="color:#eab308" id="c-per"></div><div class="lbl" id="c-per-lbl"></div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('split')">💰 Split</button>
+    <button class="tab" onclick="switchTab('timeline')">⏱ Timeline</button>
+    <button class="tab" onclick="switchTab('chart')">📊 Chart</button>
+    <button class="tab" onclick="switchTab('roster')">🎟 Roster</button>
+  </div>
+
+  <!-- Split Panel -->
+  <div class="panel active" id="panel-split">
+    <div class="split-hero">
+      <div class="sub">Each of the <span id="split-count"></span> hosts receives</div>
+      <div class="big" id="split-per"></div>
+      <div class="note" id="split-note"></div>
+    </div>
+    <div class="split-breakdown">
+      <div class="row"><span class="hl">Venmo:</span> <span id="bd-venmo"></span> &nbsp;·&nbsp; <span class="hl">Cash:</span> <span id="bd-cash"></span> &nbsp;·&nbsp; <span class="hlg">Budget Surplus:</span> <span id="bd-surplus"></span></div>
+      <div class="divider" id="bd-instruction"></div>
+    </div>
+  </div>
+
+  <!-- Timeline Panel -->
+  <div class="panel" id="panel-timeline">
+    <div class="chart-box">
+      <div class="chart-title">Individual payments — bubble size = amount (CDT)</div>
+      <canvas id="bubbleChart" height="240"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Total collected per hour (CDT)</div>
+      <canvas id="hourChart" height="160"></canvas>
+    </div>
+  </div>
+
+  <!-- Bar Chart Panel -->
+  <div class="panel" id="panel-chart">
+    <div class="chart-box">
+      <canvas id="barChart" height="320"></canvas>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#e8412a"></div>🦞 Big Spender ($75+)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>🍺 Solid Showing ($40–74)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#eab308"></div>👍 Fair Share ($20–39)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#94a3b8"></div>😬 Light Weight (&lt;$20)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Roster Panel -->
+  <div class="panel" id="panel-roster">
+    <div class="roster" id="roster-list"></div>
+  </div>
+
+</div>
+
+<script>
+const CASH = 70;
+const BUDGET_SURPLUS = 178;
+const SPLIT_COUNT = 11;
+
+const payments = [
+  { name: "Brandon Rolader",         amount: 100, time: "11:09 AM" },
+  { name: "Jerry Dichiara",          amount: 50,  time: "11:27 AM" },
+  { name: "Ralph & Brittany Norman", amount: 20,  time: "12:14 PM" },
+  { name: "Jacob Brown",             amount: 20,  time: "12:17 PM" },
+  { name: "Melissa Haughery",        amount: 65,  time: "12:26 PM" },
+  { name: "Adam Vise",               amount: 25,  time: "12:29 PM" },
+  { name: "Andrew Chambless",        amount: 50,  time: "12:40 PM" },
+  { name: "Mark Haughery",           amount: 15,  time: "12:51 PM" },
+  { name: "Your Carrier",            amount: 50,  time: "12:53 PM" },
+  { name: "Michael Aiken",           amount: 20,  time: "12:53 PM" },
+  { name: "William Davis",           amount: 20,  time: "12:54 PM" },
+  { name: "William Davidson",        amount: 30,  time: "1:05 PM"  },
+  { name: "Layton Hopkins",          amount: 20,  time: "1:17 PM"  },
+  { name: "Savannah Pendergrass",    amount: 20,  time: "1:20 PM"  },
+  { name: "Patrick Sullivan",        amount: 20,  time: "1:21 PM"  },
+  { name: "Joey Nadler",             amount: 20,  time: "1:23 PM"  },
+  { name: "Nathan Weinberger",       amount: 40,  time: "1:24 PM"  },
+  { name: "Justin Bunn",             amount: 50,  time: "1:35 PM"  },
+  { name: "Chace Spears",            amount: 30,  time: "1:39 PM"  },
+  { name: "Laura Escue",             amount: 30,  time: "1:44 PM"  },
+  { name: "Michelle Pieroni",        amount: 25,  time: "2:06 PM"  },
+  { name: "Walt Terry",              amount: 30,  time: "2:23 PM"  },
+  { name: "Drew Jackson",            amount: 30,  time: "2:34 PM"  },
+  { name: "Cille Waters",            amount: 20,  time: "2:46 PM"  },
+  { name: "Ashley Daly",             amount: 20,  time: "3:26 PM"  },
+  { name: "Christina Duval",         amount: 10,  time: "3:28 PM"  },
+  { name: "Kyle Chaffin",            amount: 20,  time: "3:39 PM"  },
+  { name: "Megan Jones",             amount: 30,  time: "4:19 PM"  },
+  { name: "James Wilson",            amount: 50,  time: "4:21 PM"  },
+  { name: "Blake Sayers",            amount: 30,  time: "5:01 PM"  },
+  { name: "Hunter Johnson",          amount: 50,  time: "5:25 PM"  },
+  { name: "Cody Walker",             amount: 50,  time: "7:09 PM"  },
+  { name: "Daniel Duddleston",       amount: 30,  time: "9:36 AM"  },
+];
+
+const venmoTotal = payments.reduce((s, p) => s + p.amount, 0);
+const grandTotal = venmoTotal + CASH + BUDGET_SURPLUS;
+const perPerson  = grandTotal / SPLIT_COUNT;
+const sorted     = [...payments].sort((a, b) => b.amount - a.amount);
+
+function tierColor(amt) {
+  if (amt >= 75) return "#e8412a";
+  if (amt >= 40) return "#f97316";
+  if (amt >= 20) return "#eab308";
+  return "#94a3b8";
+}
+
+function toHour(t) {
+  const [time, mer] = t.split(" ");
+  let [h, m] = time.split(":").map(Number);
+  if (mer === "PM" && h !== 12) h += 12;
+  if (mer === "AM" && h === 12) h = 0;
+  return h + m / 60;
+}
+
+// ── Populate stat cards ──
+document.getElementById("c-venmo").textContent   = "$" + venmoTotal.toLocaleString();
+document.getElementById("c-cash").textContent    = "$" + CASH;
+document.getElementById("c-surplus").textContent = "$" + BUDGET_SURPLUS;
+document.getElementById("c-total").textContent   = "$" + grandTotal.toLocaleString();
+document.getElementById("c-per").textContent     = "$" + perPerson.toFixed(2);
+document.getElementById("c-per-lbl").textContent = "Per Person (÷" + SPLIT_COUNT + ")";
+
+// ── Populate split panel ──
+document.getElementById("split-count").textContent = SPLIT_COUNT;
+document.getElementById("split-per").textContent   = "$" + perPerson.toFixed(2);
+document.getElementById("split-note").textContent  = "$" + grandTotal + " total ÷ " + SPLIT_COUNT + " people";
+document.getElementById("bd-venmo").textContent    = "$" + venmoTotal.toLocaleString();
+document.getElementById("bd-cash").textContent     = "$" + CASH;
+document.getElementById("bd-surplus").textContent  = "$" + BUDGET_SURPLUS;
+document.getElementById("bd-instruction").innerHTML =
+  'Pay <span class="hly">7 people $121.64</span> and <span class="hly">4 people $121.63</span> — totals to exactly $' + grandTotal + '.';
+
+// ── Roster ──
+const rosterEl = document.getElementById("roster-list");
+sorted.forEach((p, i) => {
+  const c   = tierColor(p.amount);
+  const pct = (p.amount / grandTotal) * 100;
+  const row = document.createElement("div");
+  row.className = "roster-row";
+  row.innerHTML = `
+    <div class="roster-num">${i + 1}</div>
+    <div class="roster-info">
+      <div class="roster-name">${p.name}</div>
+      <div class="roster-time">${p.time}</div>
+      <div class="roster-bar-bg"><div class="roster-bar" style="width:${pct}%;background:${c}"></div></div>
+    </div>
+    <div class="roster-amt" style="color:${c}">$${p.amount}</div>`;
+  rosterEl.appendChild(row);
+});
+// Cash row
+const cashRow = document.createElement("div");
+cashRow.className = "roster-row cash";
+cashRow.innerHTML = `
+  <div class="roster-num">—</div>
+  <div class="roster-info">
+    <div class="roster-name" style="color:#94a3b8">Cash Contributions</div>
+    <div class="roster-time">Not attributed</div>
+  </div>
+  <div class="roster-amt" style="color:#94a3b8">$${CASH}</div>`;
+rosterEl.appendChild(cashRow);
+
+// ── Tab switching ──
+function switchTab(id) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  event.target.classList.add("active");
+  document.getElementById("panel-" + id).classList.add("active");
+  if (id === "timeline" && !window._chartsBuilt) buildCharts();
+  if (id === "chart"    && !window._barBuilt)    buildBarChart();
+}
+
+// ── Bubble + Hourly charts ──
+function buildCharts() {
+  window._chartsBuilt = true;
+
+  const xLabelMap = {9:"9 AM",10:"10 AM",11:"11 AM",12:"12 PM",13:"1 PM",14:"2 PM",15:"3 PM",16:"4 PM",17:"5 PM",18:"6 PM",19:"7 PM"};
+
+  // Bubble scatter
+  const bubbleData = payments.map(p => ({
+    x: toHour(p.time),
+    y: p.amount,
+    r: Math.sqrt(p.amount) * 1.8,
+    name: p.name,
+    time: p.time,
+  }));
+
+  new Chart(document.getElementById("bubbleChart"), {
+    type: "bubble",
+    data: {
+      datasets: [{
+        data: bubbleData,
+        backgroundColor: bubbleData.map(d => tierColor(d.y) + "b8"),
+        borderColor:     bubbleData.map(d => tierColor(d.y)),
+        borderWidth: 1.5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const d = ctx.raw;
+              return ` ${d.name}  ·  $${d.y}  ·  ${d.time}`;
+            }
+          },
+          backgroundColor: "#1a0a04",
+          borderColor: "#e8412a",
+          borderWidth: 1,
+          titleColor: "#fff",
+          bodyColor: "#f97316",
+        }
+      },
+      scales: {
+        x: {
+          min: 8.5, max: 20,
+          ticks: {
+            color: "#6b5045",
+            stepSize: 1,
+            callback: v => xLabelMap[Math.round(v)] || "",
+          },
+          grid: { color: "rgba(255,255,255,0.04)" }
+        },
+        y: {
+          min: 0, max: 120,
+          ticks: { color: "#6b5045", callback: v => "$" + v },
+          grid: { color: "rgba(255,255,255,0.04)" }
+        }
+      }
+    }
+  });
+
+  // Hourly buckets
+  const buckets = {};
+  payments.forEach(p => {
+    const h = Math.floor(toHour(p.time));
+    buckets[h] = (buckets[h] || 0) + p.amount;
+  });
+  const hKeys   = Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+  const hLabels = hKeys.map(h => xLabelMap[h] || h+":00");
+  const hVals   = hKeys.map(h => buckets[h]);
+  const hColors = hVals.map(v => v >= 200 ? "#e8412a" : v >= 100 ? "#f97316" : "#eab308");
+
+  new Chart(document.getElementById("hourChart"), {
+    type: "bar",
+    data: {
+      labels: hLabels,
+      datasets: [{
+        data: hVals,
+        backgroundColor: hColors.map(c => c + "d9"),
+        borderColor: hColors,
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => " $" + ctx.raw },
+          backgroundColor: "#1a0a04",
+          borderColor: "#e8412a",
+          borderWidth: 1,
+          bodyColor: "#f97316",
+        }
+      },
+      scales: {
+        x: { ticks: { color: "#6b5045" }, grid: { color: "rgba(255,255,255,0.04)" } },
+        y: { ticks: { color: "#6b5045", callback: v => "$"+v }, grid: { color: "rgba(255,255,255,0.04)" } }
+      }
+    }
+  });
+}
+
+// ── Bar chart (sorted by amount) ──
+function buildBarChart() {
+  window._barBuilt = true;
+  new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
+      labels: sorted.map(p => p.name),
+      datasets: [{
+        data: sorted.map(p => p.amount),
+        backgroundColor: sorted.map(p => tierColor(p.amount) + "c0"),
+        borderColor:     sorted.map(p => tierColor(p.amount)),
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      indexAxis: "x",
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => " $" + ctx.raw },
+          backgroundColor: "#1a0a04",
+          borderColor: "#e8412a",
+          borderWidth: 1,
+          bodyColor: "#f97316",
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: "#6b5045", font: { size: 10 }, maxRotation: 55, minRotation: 45 },
+          grid: { color: "rgba(255,255,255,0.04)" }
+        },
+        y: {
+          ticks: { color: "#6b5045", callback: v => "$"+v },
+          grid: { color: "rgba(255,255,255,0.04)" }
+        }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
