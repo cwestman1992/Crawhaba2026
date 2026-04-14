@@ -206,6 +206,8 @@
     <div class="card"><div class="val" style="color:#22c55e" id="c-surplus"></div><div class="lbl">Budget Surplus</div></div>
     <div class="card"><div class="val" style="color:#f97316" id="c-total"></div><div class="lbl">Grand Total</div></div>
     <div class="card"><div class="val" style="color:#eab308" id="c-per"></div><div class="lbl" id="c-per-lbl"></div></div>
+    <div class="card"><div class="val" style="color:#cc0000" id="c-cost"></div><div class="lbl">Cost Per Host</div></div>
+    <div class="card"><div class="val" id="c-net"></div><div class="lbl">Net Per Host</div></div>
   </div>
 
   <!-- Tabs -->
@@ -226,6 +228,7 @@
     <div class="split-breakdown">
       <div class="row"><span class="hl">Venmo:</span> <span id="bd-venmo"></span> &nbsp;·&nbsp; <span class="hl">Cash:</span> <span id="bd-cash"></span> &nbsp;·&nbsp; <span class="hlg">Budget Surplus:</span> <span id="bd-surplus"></span></div>
       <div class="divider" id="bd-instruction"></div>
+      <div class="divider" id="bd-cost"></div>
     </div>
   </div>
 
@@ -264,7 +267,8 @@
 <script>
 const CASH = 70;
 const BUDGET_SURPLUS = 178;
-const SPLIT_COUNT = 11;
+const SPLIT_COUNT = 12;
+const COST_PER_HOST = 180;
 
 const payments = [
   { name: "Brandon Rolader",         amount: 100, time: "11:09 AM" },
@@ -337,6 +341,15 @@ document.getElementById("split-note").textContent  = "$" + grandTotal + " total 
 document.getElementById("bd-venmo").textContent    = "$" + venmoTotal.toLocaleString();
 document.getElementById("bd-cash").textContent     = "$" + CASH;
 document.getElementById("bd-surplus").textContent  = "$" + BUDGET_SURPLUS;
+document.getElementById("c-cost").textContent = "$" + COST_PER_HOST;
+const netAmt = perPerson - COST_PER_HOST;
+const netEl = document.getElementById("c-net");
+netEl.textContent = (netAmt >= 0 ? "+" : "") + "$" + Math.abs(netAmt).toFixed(2);
+netEl.style.color = netAmt >= 0 ? "#22c55e" : "#cc0000";
+
+document.getElementById("bd-cost").innerHTML =
+  "Each host contributed <strong style='color:#f5e6d3'>" + "$" + COST_PER_HOST + "</strong> toward costs and receives back <strong style='color:#f5e6d3'>$" + perPerson.toFixed(2) + "</strong> — a net out-of-pocket of <strong style='color:#cc0000'>$" + Math.abs(netAmt).toFixed(2) + " per host</strong>.";
+
 document.getElementById("bd-instruction").innerHTML =
   'Pay <span class="hly">7 people $121.64</span> and <span class="hly">4 people $121.63</span> — totals to exactly $' + grandTotal + '.';
 
