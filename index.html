@@ -351,7 +351,7 @@ document.getElementById("bd-cost").innerHTML =
   "Each host contributed <strong style='color:#f5e6d3'>" + "$" + COST_PER_HOST + "</strong> toward costs and receives back <strong style='color:#f5e6d3'>$" + perPerson.toFixed(2) + "</strong> — a net out-of-pocket of <strong style='color:#cc0000'>$" + Math.abs(netAmt).toFixed(2) + " per host</strong>.";
 
 document.getElementById("bd-instruction").innerHTML =
-  'Pay <span class="hly">7 people $121.64</span> and <span class="hly">4 people $121.63</span> — totals to exactly $' + grandTotal + '.';
+  'Each of the ' + SPLIT_COUNT + ' hosts receives exactly <span class="hly">$' + perPerson.toFixed(2) + '</span> — totals to exactly $' + grandTotal + '.';
 
 // ── Roster ──
 const rosterEl = document.getElementById("roster-list");
